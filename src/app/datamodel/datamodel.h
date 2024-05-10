@@ -13,7 +13,6 @@ class DataModel : public AbstractDataModel {
 public:
   explicit DataModel(const char* path, QObject* parent = nullptr);
   ~DataModel();
-  ;
 
   virtual QList<QPair<QFileInfo, State>>& getData() override;
 

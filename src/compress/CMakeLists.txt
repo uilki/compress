@@ -1,9 +1,18 @@
 set(TARGET "compress")
 
-file(GLOB SOURCES
-    *.h
-    *.cpp
-)
+set(SOURCES
+    bmpimageprocessor.h
+    bmpdatareader.cpp
+    decompressor.cpp
+    bmpdatareader.h
+    saveutils.h
+    bmpimageprocessor.cpp
+    types.h
+    saveutils.cpp
+    compressor.h
+    compressor.cpp
+    decompressor.h
+    compresseddatareader.h
+    compresseddatareader.cpp)
 
 add_library(${TARGET} STATIC ${SOURCES})
-

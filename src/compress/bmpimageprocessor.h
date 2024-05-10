@@ -1,26 +1,18 @@
-#ifndef COMPRES_DATAPROWIDER_H
-#define COMPRES_DATAPROWIDER_H
+#ifndef COMPRES_BMPIMAGEPROCESSOR_H
+#define COMPRES_BMPIMAGEPROCESSOR_H
 
-#include <memory>
+#include "types.h"
 
 namespace compres {
 
 class BmpImageProcessor {
 public:
-  enum Errors { noError, openFileError, readError, writeError, corruptedFile };
-
-public:
-  BmpImageProcessor();
-  ~BmpImageProcessor();
-  Errors compressAndSaveImage(const char* inFileName, const char* outFileName);
-  Errors decompressAndSaveImage(const char* inFileName,
-                                const char* outFileName);
-
-private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
+  static Errors compressAndSaveImage(const char* inFileName,
+                                     const char* outFileName);
+  static Errors decompressAndSaveImage(const char* inFileName,
+                                       const char* outFileName);
 };
 
 } // namespace compres
 
-#endif // COMPRES_DATAPROWIDER_H
+#endif // COMPRES_BMPIMAGEPROCESSOR_H

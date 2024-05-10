@@ -2,8 +2,6 @@
 
 #include "datamodel/datamodel.h"
 
-#include <thread>
-
 namespace model {
 MainModel::MainModel(const char* path)
     : dataModel_ { std::make_unique<DataModel>(path) } {
@@ -83,15 +81,11 @@ void MainModel::processFile(int index) {
   const auto& ext = dataModel_->getData()[index].first.suffix();
   if (ext != "barch") {
     changeState(index, State::compressing);
-    auto t = std::thread(&DataModel::compress,
-                         static_cast<DataModel*>(dataModel_.get()), index);
-    t.detach();
+    dataModel_->compress(index);
   }
   else {
     changeState(index, State::decompressing);
-    auto t = std::thread(&DataModel::decompress,
-                         static_cast<DataModel*>(dataModel_.get()), index);
-    t.detach();
+    dataModel_->decompress(index);
   }
 }
 

@@ -4,6 +4,22 @@
 #include <vector>
 
 namespace compres {
+enum Errors {
+  noError = -1,
+  openFileError,
+  readError,
+  writeError,
+  corruptedFile
+};
+
+enum Offsets {
+  Start       = 0,
+  FileSize    = 2,
+  PixelArray  = 10,
+  ImageWidth  = 18,
+  ImageHeight = 22,
+  ImageSize   = 34
+};
 
 enum class Colors : unsigned short { black = 0x00, white = 0xff };
 

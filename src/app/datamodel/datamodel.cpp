@@ -1,16 +1,15 @@
 #include "datamodel.h"
 
-#include "bmpimageprocessor.h"
 #include "dataprovider.h"
+#include "taskrunner/taskrunner.h"
 
 #include <QFile>
 #include <QFileInfo>
-#include <mutex>
 
 namespace {
 constexpr const char* ErrorMessage[]
-    = { "", "Failed opening file", "Failed reading file",
-        "Failed writing file", "Corrupted file" };
+    = { "Failed opening file", "Failed reading file", "Failed writing file",
+        "Corrupted file" };
 } // namespace
 
 namespace model {
@@ -19,54 +18,38 @@ struct DataModel::Impl {
       : this_ { that },
         dataProvider_ { path } {
     dirData_ = dataProvider_.getFileInfo();
+    connect(&taskRunner_, &concurrent::TaskRunner::taskFinished,
+            [this](compres::Errors err, int index) {
+              constexpr const char* ErrorMessage[]
+                  = { "Failed opening file", "Failed reading file",
+                      "Failed writing file", "Corrupted file" };
+              if (err != compres::noError)
+                emit this_.error(ErrorMessage[err], index);
+              else
+                emit this_.processingFinished();
+            });
   }
 
   void compress(int index) {
-    std::unique_lock<std::mutex> lk { processMutex_, std::defer_lock };
-    if (!lk.try_lock()) {
-      emit this_.error("Another file is being processed...", index);
-      return;
-    }
-    auto compressedFileName = dirData_[index].first.absolutePath() + "/"
-                              + dirData_[index].first.baseName() + ".barch";
-    if (auto err = imageProcessor_.compressAndSaveImage(
-            dirData_[index].first.absoluteFilePath().toStdString().c_str(),
-            compressedFileName.toStdString().c_str());
-        err != compres::BmpImageProcessor::noError) {
-      emit this_.error(ErrorMessage[err], index);
-      return;
-    }
-
-    emit this_.processingFinished();
+    auto fileToCompress = dirData_[index].first.absoluteFilePath();
+    auto resultFileName = dirData_[index].first.absolutePath() + "/"
+                          + dirData_[index].first.baseName() + ".barch";
+    taskRunner_.run(concurrent::TaskRunner::Task::compres, index,
+                    fileToCompress, resultFileName);
   }
 
   void decompress(int index) {
-    std::unique_lock<std::mutex> lk { processMutex_, std::defer_lock };
-    if (!lk.try_lock()) {
-      emit this_.error("Another file is being processed...", index);
-      return;
-    }
-
-    auto decompressedFileName = dirData_[index].first.absolutePath() + "/"
-                                + dirData_[index].first.baseName()
-                                + " unpacked.bmp";
-    if (auto err = imageProcessor_.decompressAndSaveImage(
-            dirData_[index].first.absoluteFilePath().toStdString().c_str(),
-            decompressedFileName.toStdString().c_str());
-        err != compres::BmpImageProcessor::noError) {
-      emit this_.error(ErrorMessage[err], index);
-      return;
-    }
-
-    emit this_.processingFinished();
+    auto fileToCompress = dirData_[index].first.absoluteFilePath();
+    auto resultFileName = dirData_[index].first.absolutePath() + "/"
+                          + dirData_[index].first.baseName() + " unpacked.bmp";
+    taskRunner_.run(concurrent::TaskRunner::Task::decompress, index,
+                    fileToCompress, resultFileName);
   }
 
   DataModel&                     this_;
-  compres::BmpImageProcessor     imageProcessor_;
   DataProvider                   dataProvider_;
-
+  concurrent::TaskRunner         taskRunner_;
   QList<QPair<QFileInfo, State>> dirData_;
-  std::mutex                     processMutex_;
 }; // struct DataModel::Impl
 
 DataModel::DataModel(const char* path, QObject* parent)
