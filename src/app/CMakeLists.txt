@@ -14,7 +14,7 @@ set(SOURCES
     taskrunner/taskrunner.cpp
     taskrunner/compressortask.cpp)
 
-include_directories(model datamodel ../compress)
+include_directories(model datamodel ../compress ../logging)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Concurrent)
 
@@ -41,7 +41,7 @@ set_target_properties(
              MACOSX_BUNDLE TRUE
              WIN32_EXECUTABLE TRUE)
 
-target_link_libraries(app PRIVATE Qt6::Quick Qt6::Concurrent compress
+target_link_libraries(app PRIVATE Qt6::Quick Qt6::Concurrent compress logging
                                   assetsplugin)
 
 install(

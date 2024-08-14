@@ -15,4 +15,6 @@ set(SOURCES
     compresseddatareader.h
     compresseddatareader.cpp)
 
+include_directories(../logging)
+
 add_library(${TARGET} STATIC ${SOURCES})
